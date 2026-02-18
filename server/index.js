@@ -39,33 +39,51 @@ app.post('/api/interns', async (req, res) => {
 });
 
 // Get All (With Search & Filter)
+// GET Interns with Filters & Pagination
 app.get('/api/interns', async (req, res) => {
   try {
-    const { q, role, status } = req.query;
+    const { q, role, status, page = 1, limit = 10 } = req.query;
     const query = {};
-    
+
+    // Search logic (Name or Email)
     if (q) {
       query.$or = [
         { name: { $regex: q, $options: 'i' } },
         { email: { $regex: q, $options: 'i' } }
       ];
     }
+
+    // Filter logic
     if (role) query.role = role;
     if (status) query.status = status;
 
-    const interns = await Intern.find(query).sort({ createdAt: -1 });
-    res.json(interns);
+    const interns = await Intern.find(query)
+      .sort({ createdAt: -1 }) // Newest first
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Intern.countDocuments(query);
+
+    res.json({
+      data: interns,
+      pagination: {
+        total,
+        page: Number(page),
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update Intern
+// UPDATE Intern (The missing feature!)
 app.patch('/api/interns/:id', async (req, res) => {
   try {
-    const intern = await Intern.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!intern) return res.status(404).json({ message: 'Intern not found' });
-    res.json(intern);
+    const { id } = req.params;
+    const updatedIntern = await Intern.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    if (!updatedIntern) return res.status(404).json({ error: "Intern not found" });
+    res.json(updatedIntern);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

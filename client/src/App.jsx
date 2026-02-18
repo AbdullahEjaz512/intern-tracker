@@ -1,158 +1,189 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import './App.css';
+import './App.css'; // Keep your existing CSS
 
-// Base URL for your Backend
+// Configure Base URL (Change to your deployed URL later, keep localhost for now)
 const API_URL = 'http://localhost:5000/api/interns';
 
 function App() {
   const [interns, setInterns] = useState([]);
+  const [form, setForm] = useState({ name: '', email: '', role: 'Frontend', status: 'Applied', score: '' });
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    role: 'Frontend',
-    status: 'Applied',
-    score: ''
-  });
+  const [filters, setFilters] = useState({ role: '', status: '' });
+  const [editingId, setEditingId] = useState(null); // Track which ID we are editing
+  const [loading, setLoading] = useState(false);
 
-  // Fetch Interns (Load data on start)
-  useEffect(() => {
-    fetchInterns();
-  }, []);
-
+  // Fetch Interns (with filters)
   const fetchInterns = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}?q=${search}`);
-      setInterns(res.data);
-    } catch (err) {
-      console.error("Error fetching interns:", err);
+      const params = { q: search, ...filters };
+      const { data } = await axios.get(API_URL, { params });
+      setInterns(data.data);
+    } catch (error) {
+      console.error("Error fetching data", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle Form Submit (Create Intern)
+  useEffect(() => {
+    fetchInterns();
+  }, [search, filters]); // Re-run when search or filters change
+
+  // Handle Form Submit (Create OR Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(API_URL, form);
-      alert('Intern Added!');
+      if (editingId) {
+        // Update Logic
+        await axios.patch(`${API_URL}/${editingId}`, form);
+        setEditingId(null); // Clear edit mode
+      } else {
+        // Create Logic
+        await axios.post(API_URL, form);
+      }
       setForm({ name: '', email: '', role: 'Frontend', status: 'Applied', score: '' }); // Reset form
-      fetchInterns(); // Refresh list
-    } catch (err) {
-      alert('Error: ' + (err.response?.data?.error || err.message));
+      fetchInterns();
+    } catch (error) {
+      alert("Error saving intern. Check console for details.");
     }
   };
 
   // Handle Delete
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this intern?')) {
-      try {
-        await axios.delete(`${API_URL}/${id}`);
-        fetchInterns();
-      } catch (err) {
-        alert('Error deleting');
-      }
-    }
+    if (!confirm("Are you sure?")) return;
+    await axios.delete(`${API_URL}/${id}`);
+    fetchInterns();
+  };
+
+  // Handle Edit Click
+  const handleEdit = (intern) => {
+    setForm({ 
+      name: intern.name, 
+      email: intern.email, 
+      role: intern.role, 
+      status: intern.status, 
+      score: intern.score 
+    });
+    setEditingId(intern._id);
+    // Scroll to top to see form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+    <div className="container">
       <h1>Intern Tracker</h1>
 
-      {/* --- ADD INTERN FORM --- */}
-      <div style={{ background: '#f4f4f4', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-        <h3>Add New Intern</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+      {/* --- FORM SECTION --- */}
+      <div className="card">
+        <h2>{editingId ? 'Edit Intern' : 'Add New Intern'}</h2>
+        <form onSubmit={handleSubmit} className="form-grid">
           <input 
             placeholder="Name" 
             value={form.name} 
             onChange={e => setForm({...form, name: e.target.value})} 
             required 
-            style={{ padding: '8px' }}
           />
           <input 
             placeholder="Email" 
-            type="email" 
             value={form.email} 
             onChange={e => setForm({...form, email: e.target.value})} 
             required 
-            style={{ padding: '8px' }}
+            disabled={!!editingId} // Disable email edit if you want unique constraints
           />
           <input 
-            placeholder="Score (0-100)" 
             type="number" 
+            placeholder="Score (0-100)" 
             value={form.score} 
             onChange={e => setForm({...form, score: e.target.value})} 
             required 
-            style={{ padding: '8px' }}
+            min="0" max="100"
           />
-          <select 
-            value={form.role} 
-            onChange={e => setForm({...form, role: e.target.value})} 
-            style={{ padding: '8px' }}
-          >
-            <option>Frontend</option>
-            <option>Backend</option>
-            <option>Fullstack</option>
+          <select value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="Fullstack">Fullstack</option>
           </select>
-          <select 
-            value={form.status} 
-            onChange={e => setForm({...form, status: e.target.value})} 
-            style={{ padding: '8px' }}
-          >
-            <option>Applied</option>
-            <option>Interviewing</option>
-            <option>Hired</option>
-            <option>Rejected</option>
+          <select value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
+            <option value="Applied">Applied</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Hired">Hired</option>
+            <option value="Rejected">Rejected</option>
           </select>
-          <button type="submit" style={{ background: 'blue', color: 'white', border: 'none', cursor: 'pointer' }}>
-            Add Intern
+          
+          <button type="submit" className={editingId ? 'btn-edit' : 'btn-add'}>
+            {editingId ? 'Update Intern' : 'Add Intern'}
           </button>
+          
+          {editingId && (
+            <button type="button" className="btn-cancel" onClick={() => {
+              setEditingId(null);
+              setForm({ name: '', email: '', role: 'Frontend', status: 'Applied', score: '' });
+            }}>Cancel</button>
+          )}
         </form>
       </div>
 
-      {/* --- SEARCH & LIST --- */}
-      <div style={{ marginBottom: '10px' }}>
+      {/* --- FILTERS & SEARCH --- */}
+      <div className="controls">
         <input 
           placeholder="Search by name..." 
           value={search} 
-          onChange={e => setSearch(e.target.value)}
-          style={{ padding: '8px', width: '300px', marginRight: '10px' }}
+          onChange={e => setSearch(e.target.value)} 
+          className="search-bar"
         />
-        <button onClick={fetchInterns} style={{ padding: '8px' }}>Search</button>
+        
+        <select onChange={e => setFilters({...filters, role: e.target.value})} className="filter">
+          <option value="">All Roles</option>
+          <option value="Frontend">Frontend</option>
+          <option value="Backend">Backend</option>
+          <option value="Fullstack">Fullstack</option>
+        </select>
+
+        <select onChange={e => setFilters({...filters, status: e.target.value})} className="filter">
+          <option value="">All Statuses</option>
+          <option value="Applied">Applied</option>
+          <option value="Interviewing">Interviewing</option>
+          <option value="Hired">Hired</option>
+          <option value="Rejected">Rejected</option>
+        </select>
       </div>
 
-      <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ background: '#eee' }}>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Score</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {interns.map((intern) => (
-            <tr key={intern._id}>
-              <td>{intern.name}</td>
-              <td>{intern.email}</td>
-              <td>{intern.role}</td>
-              <td>{intern.status}</td>
-              <td>{intern.score}</td>
-              <td>
-                <button 
-                  onClick={() => handleDelete(intern._id)} 
-                  style={{ background: 'red', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}
-                >
-                  Delete
-                </button>
-              </td>
+      {/* --- TABLE SECTION --- */}
+      {loading ? <p>Loading...</p> : (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {interns.map(intern => (
+              <tr key={intern._id}>
+                <td>{intern.name}</td>
+                <td>{intern.email}</td>
+                <td>{intern.role}</td>
+                <td>
+                  <span className={`status-badge ${intern.status.toLowerCase()}`}>
+                    {intern.status}
+                  </span>
+                </td>
+                <td>{intern.score}</td>
+                <td className="actions">
+                  <button className="btn-small edit" onClick={() => handleEdit(intern)}>Edit</button>
+                  <button className="btn-small delete" onClick={() => handleDelete(intern._id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
