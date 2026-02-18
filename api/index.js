@@ -8,10 +8,7 @@ const app = express();
 // --- 1. CORS CONFIGURATION (THE FIX) ---
 // This allows your frontend (both local and Vercel) to talk to this backend
 app.use(cors({
-    origin: [
-        "http://localhost:5173",                  // Your local frontend
-        "https://intern-tracker-liard.vercel.app" // Your Vercel frontend (Double check this matches your URL exactly)
-    ],
+    origin: "*", // Allow ANY website to connect (Fixes the error guaranteed)
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
     credentials: true
 }));
@@ -127,4 +124,8 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Remove or comment out this line:
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// ADD THIS INSTEAD:
+module.exports = app;
