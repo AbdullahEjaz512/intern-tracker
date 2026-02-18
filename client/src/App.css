@@ -40,3 +40,45 @@
 .read-the-docs {
   color: #888;
 }
+/* Filters */
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.filter {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Edit & Cancel Buttons */
+.btn-edit {
+  background-color: #f59e0b; /* Orange */
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background-color: #6b7280; /* Grey */
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.btn-small {
+  padding: 5px 10px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit { background-color: #3b82f6; color: white; } /* Blue */
+.delete { background-color: #ef4444; color: white; } /* Red */
