@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css'; // Keep your existing CSS
 
 // Configure Base URL (Change to your deployed URL later, keep localhost for now)
-const API_URL = 'http://localhost:5000/api/interns';
+const API_URL = 'https://intern-tracker-backend.vercel.app/api/interns';
 
 function App() {
   const [interns, setInterns] = useState([]);
