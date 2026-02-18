@@ -4,7 +4,7 @@ Markdown
 A full-stack application to track and manage intern applications. Features include a RESTful API, database persistence, and a responsive frontend with advanced filtering.
 
 ## 🚀 Live Demo
-- **Frontend:** [https://intern-tracker.vercel.app]
+- **Frontend:** [https://intern-tracker-liard.vercel.app/]
 - **Backend:** [https://intern-tracker.vercel.app]
 
 ## ✨ Features
