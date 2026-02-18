@@ -1,16 +1,70 @@
-# React + Vite
+# 🚀 Intern Tracker System (MERN Stack)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack application designed to track intern applicants, manage their interview status, and record assessment scores. Built using the **MERN Stack** (MongoDB, Express.js, React, Node.js) as part of the Technical Assessment (Part 4).
 
-Currently, two official plugins are available:
+![Project Status](https://img.shields.io/badge/Status-Completed-success)
+![Tech Stack](https://img.shields.io/badge/Stack-MERN-blue)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Features
 
-## React Compiler
+* **Create Interns:** Add new candidates with Name, Email, Role, Status, and Score.
+* **Real-time Search:** Filter candidates instantly by name or email.
+* **Status Management:** Track applicants through stages (Applied -> Interviewing -> Hired).
+* **Data Persistence:** All data is stored persistently in MongoDB.
+* **Responsive UI:** Clean, functional interface built with React + Vite.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### **Backend (Server)**
+* **Node.js & Express:** RESTful API architecture.
+* **MongoDB & Mongoose:** NoSQL database for flexible data schemas.
+* **Cors:** Middleware for handling Cross-Origin Resource Sharing.
+
+### **Frontend (Client)**
+* **React (Vite):** Fast, modern frontend framework.
+* **Axios:** HTTP client for API requests.
+* **CSS3:** Custom styling for a clean layout.
+
+---
+
+## ⚙️ Installation & Setup
+
+Follow these steps to run the application locally.
+
+### **1. Prerequisites**
+* Node.js (v14 or higher)
+* MongoDB (Locally installed or Atlas URI)
+
+### **2. Clone the Repository**
+```bash
+git clone [https://github.com/AbdullahEjaz512/intern-tracker.git](https://github.com/AbdullahEjaz512/intern-tracker.git)
+cd intern-tracker
+
+3. Backend SetupNavigate to the server directory and install dependencies:Bashcd server
+npm install
+Configuration:The application defaults to mongodb://127.0.0.1:27017/intern_tracker.If you are using MongoDB Atlas, create a .env file in the server folder:Code snippetMONGO_URI=your_mongodb_atlas_connection_string
+PORT=5000
+Start the Server:Bashnpx nodemon index.js
+# Output should confirm: "Server running on port 5000" and "MongoDB Connected"
+4. Frontend SetupOpen a new terminal, navigate to the client directory, and install dependencies:Bashcd ../client
+npm install
+Start the Client:Bashnpm run dev
+Access the application at http://localhost:5173.📡 API EndpointsMethodEndpointDescriptionGET/api/internsFetch all interns (supports ?q= for search).POST/api/internsCreate a new intern record.PATCH/api/interns/:idUpdate an intern's details.DELETE/api/interns/:idRemove an intern from the database.📂 Project StructureBashintern-tracker/
+├── server/             # Backend Code
+│   ├── index.js        # Main server file (API Routes & DB Config)
+│   ├── package.json    # Backend dependencies
+│   └── ...
+├── client/             # Frontend Code
+│   ├── src/
+│   │   ├── App.jsx     # Main React Component (UI & Logic)
+│   │   ├── main.jsx    # Entry point
+│   ├── package.json    # Frontend dependencies
+│   └── ...
+└── README.md           # Documentation
+📸 Screenshots👤
+client\image.png
+ Author: Abdullah Ejaz
+ GitHub: AbdullahEjaz512
+ Role: Technical Assessment Candidate
