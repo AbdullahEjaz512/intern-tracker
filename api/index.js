@@ -4,17 +4,31 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// --- 1. CORS CONFIGURATION (THE FIX) ---
+// This allows your frontend (both local and Vercel) to talk to this backend
+app.use(cors({
+    origin: [
+        "http://localhost:5173",                  // Your local frontend
+        "https://intern-tracker-liard.vercel.app" // Your Vercel frontend (Double check this matches your URL exactly)
+    ],
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
+    credentials: true
+}));
+
 app.use(express.json());
 
-// 1. DATABASE CONNECTION
-// Replace with your MongoDB URI or local 'mongodb://localhost:27017/intern_tracker'
+// --- 2. DATABASE CONNECTION ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/intern_tracker';
+
 mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .catch(err => {
+    console.error('MongoDB Connection Error:', err);
+    // process.exit(1); // Optional: Exit if DB fails, but Vercel handles restarts
+  });
 
-// 2. SCHEMA & MODEL
+// --- 3. SCHEMA & MODEL ---
 const internSchema = new mongoose.Schema({
   name: { type: String, required: true, minlength: 2 },
   email: { type: String, required: true, unique: true },
@@ -25,7 +39,7 @@ const internSchema = new mongoose.Schema({
 
 const Intern = mongoose.model('Intern', internSchema);
 
-// 3. ROUTES
+// --- 4. ROUTES ---
 
 // Create Intern
 app.post('/api/interns', async (req, res) => {
@@ -38,7 +52,6 @@ app.post('/api/interns', async (req, res) => {
   }
 });
 
-// Get All (With Search & Filter)
 // GET Interns with Filters & Pagination
 app.get('/api/interns', async (req, res) => {
   try {
@@ -77,10 +90,15 @@ app.get('/api/interns', async (req, res) => {
   }
 });
 
-// UPDATE Intern (The missing feature!)
+// UPDATE Intern
 app.patch('/api/interns/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    // Check if ID is valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: "Intern not found" });
+    }
+
     const updatedIntern = await Intern.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
     if (!updatedIntern) return res.status(404).json({ error: "Intern not found" });
     res.json(updatedIntern);
@@ -92,11 +110,20 @@ app.patch('/api/interns/:id', async (req, res) => {
 // Delete Intern
 app.delete('/api/interns/:id', async (req, res) => {
   try {
-    await Intern.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: "Intern not found" });
+    }
+    await Intern.findByIdAndDelete(id);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Root Route (Just to check if API is running)
+app.get('/', (req, res) => {
+    res.send('Intern Tracker API is Running');
 });
 
 const PORT = process.env.PORT || 5000;
